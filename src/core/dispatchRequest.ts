@@ -1,37 +1,38 @@
-import { buildUrl } from '../helper/url'
-import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from '../types'
-import xhr from './xhr'
-import { transformRequest, transformResponse } from '../helper/data'
-import { processHeaders } from '../helper/headers'
+import { buildUrl } from '../helper/url';
+import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from '../types';
+import xhr from './xhr';
+import { transformRequest, transformResponse } from '../helper/data';
+import { flattenHeaders, processHeaders } from '../helper/headers';
 
 export default function dispatchRequest(config: AxiosRequestConfig): AxiosPromise {
-  processConfig(config)
+  processConfig(config);
   return xhr(config).then(res => {
-    return transformResponseData(res)
-  })
+    return transformResponseData(res);
+  });
 }
 
 function processConfig(config: AxiosRequestConfig): void {
-  config.url = transformUrl(config)
-  config.headers = transformHeaders(config)
-  config.data = transformRequestData(config)
+  config.url = transformUrl(config);
+  config.headers = transformHeaders(config);
+  config.data = transformRequestData(config);
+  config.headers = flattenHeaders(config.headers, config.method!);
 }
 
 function transformUrl(config: AxiosRequestConfig): string {
-  const { url, params } = config
-  return buildUrl(url!, params)
+  const { url, params } = config;
+  return buildUrl(url!, params);
 }
 
 function transformRequestData(config: AxiosRequestConfig): any {
-  return transformRequest(config.data)
+  return transformRequest(config.data);
 }
 
 function transformHeaders(config: AxiosRequestConfig): any {
-  const { headers = {}, data } = config
-  return processHeaders(headers, data)
+  const { headers = {}, data } = config;
+  return processHeaders(headers, data);
 }
 
 function transformResponseData(res: AxiosResponse): AxiosResponse {
-  res.data = transformResponse(res.data)
-  return res
+  res.data = transformResponse(res.data);
+  return res;
 }
