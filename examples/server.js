@@ -37,7 +37,13 @@ app.use(cookieParser())
 
 app.use(router)
 app.use(webpackHotMiddleware(compiler))
-app.use(express.static(__dirname))
+app.use(
+  express.static(__dirname, {
+    setHeaders (res) {
+      res.cookie('XSRF-TOKEN-D', '1234abc')
+    }
+  })
+)
 
 const port = process.env.PORT || 8080
 module.exports = app.listen(port, () => {
