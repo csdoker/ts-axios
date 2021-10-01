@@ -5,101 +5,102 @@ import {
   Method,
   RejectedFn,
   ResolvedFn
-} from '../types'
-import dispatchRequest, { transformURL } from './dispatchRequest'
-import InterceptorManager from './InterceptorManager'
-import mergeConfig from './mergeConfig'
+} from "../types";
+import dispatchRequest, { transformURL } from "./dispatchRequest";
+import InterceptorManager from "./InterceptorManager";
+import mergeConfig from "./mergeConfig";
 
 interface Interceptors {
-  request: InterceptorManager<AxiosRequestConfig>
-  response: InterceptorManager<AxiosResponse>
+  request: InterceptorManager<AxiosRequestConfig>;
+  response: InterceptorManager<AxiosResponse>;
 }
 
 interface PromiseChain {
-  resolved: ResolvedFn | ((config: AxiosRequestConfig) => AxiosPromise)
-  rejected?: RejectedFn
+  resolved: ResolvedFn | ((config: AxiosRequestConfig) => AxiosPromise);
+  rejected?: RejectedFn;
 }
 
 export default class Axios {
-  defaults: AxiosRequestConfig
-  interceptors: Interceptors
+  defaults: AxiosRequestConfig;
+  interceptors: Interceptors;
 
   constructor(initConfig: AxiosRequestConfig) {
-    this.defaults = initConfig
+    this.defaults = initConfig;
     this.interceptors = {
       request: new InterceptorManager<AxiosRequestConfig>(),
       response: new InterceptorManager<AxiosResponse>()
-    }
+    };
   }
 
   request(url: any, config?: any): AxiosPromise {
-    if (typeof url === 'string') {
+    if (typeof url === "string") {
       if (!config) {
-        config = {}
+        config = {};
       }
-      config.url = url
+      config.url = url;
     } else {
-      config = url
+      config = url;
     }
 
-    config = mergeConfig(this.defaults, config)
+    config = mergeConfig(this.defaults, config);
+    config.method = config.method.toLowerCase();
 
     const chain: PromiseChain[] = [
       {
         resolved: dispatchRequest,
         rejected: undefined
       }
-    ]
+    ];
 
     this.interceptors.request.forEach(interceptor => {
-      chain.unshift(interceptor)
-    })
+      chain.unshift(interceptor);
+    });
 
     this.interceptors.response.forEach(interceptor => {
-      chain.push(interceptor)
-    })
+      chain.push(interceptor);
+    });
 
-    let promise = Promise.resolve(config)
+    let promise = Promise.resolve(config);
 
     while (chain.length) {
-      const { resolved, rejected } = chain.shift()!
-      promise = promise.then(resolved, rejected)
+      const { resolved, rejected } = chain.shift()!;
+      promise = promise.then(resolved, rejected);
     }
 
-    return promise
+    return promise;
   }
 
   get(url: string, config?: AxiosRequestConfig): AxiosPromise {
-    return this._requestMethodWithoutData('get', url, config)
+    return this._requestMethodWithoutData("get", url, config);
   }
 
   delete(url: string, config?: AxiosRequestConfig): AxiosPromise {
-    return this._requestMethodWithoutData('delete', url, config)
+    return this._requestMethodWithoutData("delete", url, config);
   }
 
   head(url: string, config?: AxiosRequestConfig): AxiosPromise {
-    return this._requestMethodWithoutData('head', url, config)
+    return this._requestMethodWithoutData("head", url, config);
   }
 
   options(url: string, config?: AxiosRequestConfig): AxiosPromise {
-    return this._requestMethodWithoutData('options', url, config)
+    return this._requestMethodWithoutData("options", url, config);
   }
 
   post(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
-    return this._requestMethodWithData('post', url, data, config)
+    return this._requestMethodWithData("post", url, data, config);
   }
 
   put(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
-    return this._requestMethodWithData('put', url, data, config)
+    return this._requestMethodWithData("put", url, data, config);
   }
 
   patch(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
-    return this._requestMethodWithData('patch', url, data, config)
+    return this._requestMethodWithData("patch", url, data, config);
   }
 
   getUri(config?: AxiosRequestConfig): string {
-    config = mergeConfig(this.defaults, config)
-    return transformURL(config)
+    config = mergeConfig(this.defaults, config);
+    return transformURL(config);
   }
 
   _requestMethodWithoutData(
@@ -112,7 +113,7 @@ export default class Axios {
         method,
         url
       })
-    )
+    );
   }
 
   _requestMethodWithData(
@@ -127,6 +128,6 @@ export default class Axios {
         url,
         data
       })
-    )
+    );
   }
 }
